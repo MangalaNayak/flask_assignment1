@@ -1,0 +1,5 @@
+Flask
+Flask_JWT
+Flask_RESTful
+sendgrid
+Flask_SQLAlchemy
