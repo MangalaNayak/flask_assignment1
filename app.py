@@ -45,8 +45,8 @@ def reset():
     if user.otp == data["otp"]:
         user.password = data["password"]
         user.save_to_db()
-        return jsonify({"message": "your password has been reset. Login again"})
-    return jsonify({"message": "otp doesnt match!! try /forgot again"})
+        return jsonify({"message": "Your password has been reset. Login again"})
+    return jsonify({"message": "OTP doesnt match!! try /forgot again"})
 
 
 @app.route('/forgot', methods=["POST"])
