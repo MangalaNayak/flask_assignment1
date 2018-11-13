@@ -1,50 +1,70 @@
 from flask_restful import Resource, reqparse
+from flask import jsonify
+from flask_login import login_required
 from models.profile import ProfileModel
+from flask_jwt import jwt_required
 
 
-class Profile(Resource):
+class ProfileRegister(Resource):
 
     parser = reqparse.RequestParser()
-    parser.add_argument('id',
-                            type=str,
-                            required=False,
-                            )
-    parser.add_argument('name',
-                            type=str,
-                            required=False,
-                            help="This field cannot be blank."
-                            )
+    parser.add_argument('profession',
+        type=str,
+        required=True,
+        help="This field cannot be blank."
+    )
+    parser.add_argument('age',
+        type=int,
+        required=True,
+        help="This field cannot be blank."
+    )
     parser.add_argument('place',
-                            type=str,
-                            required=False,
-                            )
+        type=str,
+        required=True,
+        help="This field cannot be blank."
+    )
 
+    @jwt_required()
     def get(self, name):
-        store = ProfileModel.find_by_name(name)
-        if store:
-            return store.json()
-        return {'message': 'Store not found'}, 404
+        print(name)
+        profile = ProfileModel.find_by_name(name)
+        if profile:
+            return profile.json()
+        return {'message': 'profile not found'}, 404
 
     def post(self, name):
-        if ProfileModel.find_by_name(name):
-            return {'message': "A store with name '{}' already exists.".format(name)}, 400
+        data = ProfileRegister.parser.parse_args()
+        profile = ProfileModel.find_by_name(name)
+        if profile is None:
+            profile = ProfileModel(name,  **data)
+            profile.save_to_db()
+            return jsonify({"message": "Profile Created"})
+        return jsonify({"message": "Profile with this name already exists"})
 
-        store = ProfileModel(name)
-        try:
-            store.save_to_db()
-        except:
-            return {"message": "An error occurred creating the store."}, 500
-
-        return store.json(), 201
-
+    @jwt_required()
     def delete(self, name):
-        store = ProfileModel.find_by_name(name)
-        if store:
-            store.delete_from_db()
+        profile = ProfileModel.find_by_name(name)
+        if profile:
+            profile.delete_from_db()
+        return {'message': 'Item deleted'}, 200
 
-        return {'message': 'Store deleted'}
+    @jwt_required()
+    def put(self, name):
+        data = ProfileRegister.parser.parse_args()
+
+        profile = ProfileModel.find_by_name(name)
+
+        if profile is None:
+            profile = ProfileModel(name, **data)
+        if data['age']:
+            profile.age = data['age']
+        if data['place']:
+            profile.address = data['place']
+
+        profile.save_to_db()
+        return profile.json()
 
 
-class StoreList(Resource):
+class ProfileList(Resource):
     def get(self):
-        return {'stores': list(map(lambda x: x.json(), ProfileModel.query.all()))}
+        return {'Profiles': list(map(lambda x: x.json(), ProfileModel.query.all()))}

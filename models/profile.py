@@ -2,10 +2,10 @@ from db import db
 
 
 class ProfileModel(db.Model):
-    __tablename__ = 'stores'
+    __tablename__ = 'profiles'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
+    name = db.Column(db.String(80), db.ForeignKey('users.username'))
     place = db.Column(db.String(80))
 
     def __init__(self, name, place):
@@ -30,3 +30,4 @@ class ProfileModel(db.Model):
 
     def json(self):
         return {'name': self.name, 'place':self.place}
+
